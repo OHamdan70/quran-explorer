@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مستكشف القرآن — البحث والخريطة التفاعلية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0f6b4f">
+<meta name="description" content="مستكشف القرآن الكريم: بحث في النص وبالجذور، قراءة السور، وخرائط تفاعلية للآيات والسور. يعمل دون إنترنت.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="مستكشف القرآن">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+:root{--bg:#f7f4ec;--panel:#fffdf7;--ink:#1f2a24;--muted:#6b7068;--line:#e3ddcc;--acc:#0f6b4f;--acc2:#b8862b;--hit:#f6d97a;--mk:#0f6b4f;--md:#b8862b}
+@media (prefers-color-scheme:dark){:root{--bg:#141815;--panel:#1c211d;--ink:#ece8dc;--muted:#9aa097;--line:#2e352f;--acc:#4fb48c;--acc2:#d9a94a;--hit:#6b5714;--mk:#4fb48c;--md:#d9a94a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Naskh Arabic",Tahoma,sans-serif;font-size:16px;line-height:1.7}
+header{padding:18px 20px 0;max-width:1200px;margin:auto}
+h1{margin:0;font-size:24px;color:var(--acc)}
+.sub{color:var(--muted);font-size:14px}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;border-bottom:1px solid var(--line)}
+nav a{padding:8px 14px;text-decoration:none;color:var(--muted);border-bottom:3px solid transparent;font-weight:600}
+nav a.on{color:var(--acc);border-color:var(--acc)}
+main{max-width:1200px;margin:auto;padding:16px 20px 60px}
+section{display:none}section.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=search],select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
+input[type=search]{flex:1;min-width:240px;font-size:18px}
+button{font:inherit;padding:7px 14px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--acc)}
+label{font-size:14px;color:var(--muted)}
+.stats{margin:12px 0;display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 14px;min-width:120px}
+.stat b{display:block;font-size:22px;color:var(--acc)}
+.stat span{font-size:13px;color:var(--muted)}
+.res{border-bottom:1px solid var(--line);padding:10px 2px}
+.ref{font-size:13px;color:var(--acc);font-weight:700;cursor:pointer}
+.ar{font-family:"Amiri Quran","Noto Naskh Arabic",serif;font-size:22px;line-height:2.2}
+.en{direction:ltr;text-align:left;color:var(--muted);font-size:14px;font-family:system-ui,sans-serif}
+mark{background:var(--hit);color:inherit;border-radius:3px;padding:0 1px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.sc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.sc:hover{border-color:var(--acc)}
+.sc .n{float:left;color:var(--muted);font-size:13px}
+.sc .t{font-size:20px;font-weight:700}
+.tag{display:inline-block;font-size:12px;padding:0 8px;border-radius:10px;color:#fff}
+.tag.mk{background:var(--mk)}.tag.md{background:var(--md)}
+.plot{width:100%;height:640px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+#bar{height:300px}
+.reader .ayah{display:inline}
+.reader .num{color:var(--acc2);font-size:18px}
+.side{margin-top:10px}
+.muted{color:var(--muted);font-size:14px}
+.more{margin:12px auto;display:block}
+.legend{display:flex;gap:14px;font-size:14px;color:var(--muted);margin:6px 0}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:4px;vertical-align:middle}
+.w{cursor:pointer;border-radius:4px}.w:hover{background:var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:2px 10px;font-size:14px;cursor:pointer}
+.chip:hover,.chip.on{border-color:var(--acc);color:var(--acc)}
+.chip small{color:var(--muted)}
+#wpop{position:fixed;left:16px;bottom:16px;max-width:380px;z-index:20;box-shadow:0 6px 24px rgba(0,0,0,.18);display:none}
+.rootl{font-size:22px;font-weight:700;letter-spacing:4px;color:var(--acc)}
+nav a i{display:none;font-style:normal}
+nav a .sh{display:none}
+.foot{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.9}
+.foot a{color:var(--acc)}
+#appbar:empty{display:none}
+#appbar{margin-bottom:10px}
+#splash{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:50;text-align:center;font-size:18px}
+#splash.gone{display:none}
+.sp-star{font-size:64px;color:var(--acc2);animation:spin 6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.banner{background:var(--panel);border:1px solid var(--acc);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:14px}
+@media (max-width:760px){
+  body{font-size:15px}
+  header{padding:12px 14px 0}
+  h1{font-size:20px}
+  .sub{font-size:12px}
+  main{padding:10px 12px calc(84px + env(safe-area-inset-bottom))}
+  nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--panel);border-top:1px solid var(--line);border-bottom:none;margin:0;gap:0;flex-wrap:nowrap;padding-bottom:env(safe-area-inset-bottom)}
+  nav a{flex:1;text-align:center;padding:6px 2px 8px;border-bottom:none;border-top:3px solid transparent;font-size:11px;line-height:1.3}
+  nav a.on{border-color:var(--acc)}
+  nav a i{display:block;font-size:19px}
+  nav a .lg{display:none} nav a .sh{display:inline}
+  input[type=search]{min-width:0;font-size:17px}
+  .card{padding:10px}
+  .row label{font-size:13px}
+  .row select{max-width:100%}
+  .stat{min-width:0;flex:1;padding:6px 10px}
+  .stat b{font-size:19px}
+  .ar{font-size:21px;line-height:2.1}
+  .plot{height:62vh;min-height:380px}
+  #bar{height:240px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .sc .t{font-size:18px}
+  #wpop{left:8px;right:8px;max-width:none;bottom:calc(70px + env(safe-area-inset-bottom));max-height:60vh;overflow:auto}
+  #sgrid .sc .muted{font-size:12px}
+  .reader h2{font-size:19px}
+}
+</style>
+</head>
+<body>
+<header>
+<h1>مستكشف القرآن الكريم</h1>
+<div class="sub">١١٤ سورة · ٦٢٣٦ آية · ٧٧٬٤٢٩ كلمة · ١٦٥١ جذراً — بحث في النص وبالجذور، وخرائط تفاعلية</div>
+<nav id="nav">
+<a href="#search" data-v="search"><i>⌕</i><span class="lg">البحث</span><span class="sh">البحث</span></a>
+<a href="#surahs" data-v="surahs"><i>❖</i><span class="lg">السور</span><span class="sh">السور</span></a>
+<a href="#roots" data-v="roots"><i>ج</i><span class="lg">الجذور</span><span class="sh">الجذور</span></a>
+<a href="#map" data-v="map"><i>✦</i><span class="lg">خريطة الآيات</span><span class="sh">الآيات</span></a>
+<a href="#surah-map" data-v="surah-map"><i>◎</i><span class="lg">خريطة السور</span><span class="sh">تقارب السور</span></a>
+</nav>
+</header>
+<main>
+<div id="installBar" style="display:grid;gap:8px;margin-bottom:10px"></div>
+
+<section id="v-search">
+<div class="card">
+<form id="sf" class="row">
+<input type="search" id="q" placeholder="اكتب كلمة أو عبارة… مثل: الصبر، يا أيها الذين آمنوا، mercy" autocomplete="off">
+<button type="submit">بحث</button>
+</form>
+<div class="row" style="margin-top:8px">
+<label>طريقة المطابقة <select id="mode"><option value="phrase">جزء من كلمة / عبارة</option><option value="root">الجذر (كل الصيغ المشتقة)</option><option value="lemma">المدخل المعجمي (الكلمة بصيغتها)</option><option value="word">كلمة كاملة</option><option value="all">كل الكلمات (في نفس الآية)</option><option value="start">بداية كلمة</option></select></label>
+<label>السورة <select id="fs"><option value="0">كل السور</option></select></label>
+<label>الجزء <select id="fj"><option value="0">كل الأجزاء</option></select></label>
+<label>نزول الآية <select id="fp"><option value="">الكل</option><option value="0">مكية</option><option value="1">مدنية</option><option value="2">بين مكة والمدينة</option><option value="3">بالجحفة</option></select></label>
+<label><input type="checkbox" id="norm" checked> توحيد الهمزات والتاء المربوطة والألف المقصورة</label>
+<label><input type="checkbox" id="showEn"> إظهار الترجمة الإنجليزية</label>
+</div>
+</div>
+<datalist id="rootsList"></datalist>
+<div class="stats" id="stats"></div>
+<div id="breakdown" class="card" style="display:none;margin-bottom:10px"></div>
+<div id="barwrap" style="display:none"><div id="bar" class="plot"></div>
+<div class="row" style="margin:8px 0"><button class="ghost" id="toMap">عرض النتائج على خريطة الآيات</button></div></div>
+<div id="results" class="card" style="display:none"></div>
+</section>
+
+<section id="v-surahs">
+<div class="row" style="margin-bottom:10px">
+<input type="search" id="sq" placeholder="ابحث باسم السورة أو رقمها">
+<label>ترتيب <select id="sort"><option value="num">بالمصحف</option><option value="ayat">عدد الآيات</option><option value="words">عدد الكلمات</option></select></label>
+<label>النزول <select id="sp"><option value="">الكل</option><option value="مكية">مكية</option><option value="مدنية">مدنية</option></select></label>
+</div>
+<div id="sgrid" class="grid"></div>
+<div id="reader" class="card reader" style="display:none;margin-top:14px"></div>
+</section>
+
+<section id="v-roots">
+<div class="card">
+<div class="row">
+<input type="search" id="rq" placeholder="ابحث عن جذر، مثل: قطع أو ق ط ع">
+<label>ترتيب <select id="rsort"><option value="occ">الأكثر وروداً</option><option value="alpha">أبجدياً</option><option value="verses">عدد الآيات</option><option value="lem">عدد الصيغ</option></select></label>
+</div>
+<div class="muted">١٦٥١ جذراً مستخرجة من التحليل الصرفي لكل كلمة في القرآن. اضغط على جذر لعرض صيغه وكل مواضعه.</div>
+</div>
+<div id="rgrid" class="grid" style="margin-top:10px"></div>
+</section>
+
+<section id="v-map">
+<div class="card">
+<div class="row">
+<label>مصدر الخريطة <select id="msrc"><option value="roots">الجذور العربية المشتركة (من النص فقط)</option><option value="gpt">QuranGPT (من الترجمة الإنجليزية)</option></select></label>
+<label>إظهار <select id="ms"><option value="0">كل السور</option></select></label>
+<label>تلوين حسب <select id="mc"><option value="surah">السورة</option><option value="place">نزول الآية (مكية / مدنية)</option><option value="juz">الجزء</option></select></label>
+<button class="ghost" id="clearHl">إلغاء تمييز نتائج البحث</button>
+</div>
+<div class="muted" id="mapNote">كل نقطة آية. الآيات المتقاربة في المعنى تقع متقاربة في الفضاء. اسحب للتدوير، واضغط على نقطة لقراءة الآية.</div>
+</div>
+<div id="vmap" class="plot" style="margin-top:10px"></div>
+<div id="pick" class="card side" style="display:none"></div>
+</section>
+
+<section id="v-surah-map">
+<div class="card">
+<div class="row">
+<label>نوع الخريطة <select id="smt"><option value="rroots">تقارب السور بالجذور المشتركة (3D)</option><option value="centroid">مواقع السور في خريطة QuranGPT (3D)</option><option value="size">ترتيب المصحف × عدد الآيات</option></select></label>
+</div>
+<div class="legend"><span><i class="dot" style="background:var(--mk)"></i>مكية</span><span><i class="dot" style="background:var(--md)"></i>مدنية</span><span>(تصنيف السورة حسب أغلب آياتها)</span><span>حجم الدائرة = عدد الآيات</span></div>
+</div>
+<div id="smap" class="plot" style="margin-top:10px"></div>
+</section>
+<footer class="foot">
+<div id="appbar"></div>
+<div><b>المصادر:</b> النص من ملفات quran.json · الجذور والتحليل الصرفي من <a href="https://corpus.quran.com" target="_blank" rel="noopener">المدونة اللغوية للقرآن الكريم (Quranic Arabic Corpus)</a> برخصة GNU GPL، النسخة المحسّنة <a href="https://github.com/mustafa0x/quran-morphology" target="_blank" rel="noopener">quran-morphology</a> · خريطة QuranGPT من <a href="https://hazemabdelkawy.github.io/QuranGPT/" target="_blank" rel="noopener">مشروع QuranGPT</a>.</div>
+<div class="muted">التحليل الصرفي اجتهاد بشري قد يقع فيه خطأ، والخرائط أداة استكشاف لا دليل. الإصدار <span id="ver">1.0.0</span></div>
+</footer>
+</main>
+<div id="wpop" class="card"></div>
+<div id="splash"><div class="sp-in"><div class="sp-star">۞</div><div>جارٍ تحميل القرآن الكريم…</div><div class="muted" id="splashMsg">في الزيارة الأولى قد يستغرق ذلك لحظات</div></div></div>
+
+<script src="vendor/plotly.min.js" defer></script>
+<script src="data.js" defer></script>
+<script src="app.js" defer></script>
+<script src="pwa.js" defer></script>
+</body>
+</html>
